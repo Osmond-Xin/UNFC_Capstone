@@ -14,12 +14,10 @@ from .cache_manager import CacheManager
 from .data_loader import DataLoader
 from .data_validator import DataValidator
 from .expiry_calculator import ExpiryCalculator
-from .news_fetcher import NewsFetcher
 
 __all__ = [
     'CacheManager',
     'DataLoader',
     'DataValidator',
     'ExpiryCalculator',
-    'NewsFetcher',
 ]

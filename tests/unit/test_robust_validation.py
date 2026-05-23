@@ -145,3 +145,37 @@ def _synthetic_trades(start_date: str, end_date: str, **kwargs) -> pd.DataFrame:
         }
     )
 
+
+
+
+class TestWalkForward:
+    def test_run_returns_8_rows(self):
+        from modules.evaluation.robust_validation import WalkForward
+        with patch(
+            "modules.evaluation.portfolio_simulator.run_simulation",
+            side_effect=_synthetic_trades,
+        ):
+            result = WalkForward().run()
+        assert len(result) == 8
+
+    def test_run_has_required_columns(self):
+        required = {
+            "window", "is_start", "is_end", "oos_start", "oos_end",
+            "pf", "sharpe", "win_rate", "max_drawdown", "composite",
+        }
+        with patch(
+            "modules.evaluation.portfolio_simulator.run_simulation",
+            side_effect=_synthetic_trades,
+        ):
+            from modules.evaluation.robust_validation import WalkForward
+            result = WalkForward().run()
+        assert required.issubset(set(result.columns))
+
+    def test_window_years_correct(self):
+        with patch(
+            "modules.evaluation.portfolio_simulator.run_simulation",
+            side_effect=_synthetic_trades,
+        ):
+            from modules.evaluation.robust_validation import WalkForward
+            result = WalkForward().run()
+        assert list(result["window"]) == [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]

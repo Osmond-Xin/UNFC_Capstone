@@ -64,3 +64,33 @@ class TestMonteCarlo:
         mc = MonteCarlo(trades, n_iterations=50)
         _, null_dist = mc.run()
         assert len(null_dist) == 50
+    
+    def test_reproducibility_with_seed(self):
+        trades = _make_trades(80)
+        p1, dist1 = MonteCarlo(trades, n_iterations=50).run()
+        p2, dist2 = MonteCarlo(trades, n_iterations=50).run()
+        assert p1 == p2
+        np.testing.assert_array_equal(dist1, dist2)
+
+    def test_null_distribution_stored(self):
+        trades = _make_trades(80)
+        mc = MonteCarlo(trades, n_iterations=30)
+        assert mc.null_distribution is None
+        mc.run()
+        assert mc.null_distribution is not None
+
+    def test_requires_net_return_column(self):
+        trades = _make_trades(20).drop(columns=["net_return"])
+        with pytest.raises(ValueError):
+            MonteCarlo(trades)
+
+    def test_p_value_formula(self):
+        """p = sum(null >= observed) / n_iterations."""
+        trades = _make_trades(80)
+        mc = MonteCarlo(trades, n_iterations=200)
+        p_value, null_dist = mc.run()
+
+        from modules.evaluation.robust_validation import _composite_from_trades
+        observed = _composite_from_trades(trades)
+        expected_p = np.sum(null_dist >= observed) / 200
+        assert p_value == pytest.approx(expected_p)

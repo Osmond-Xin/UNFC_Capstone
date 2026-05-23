@@ -94,3 +94,27 @@ class TestMonteCarlo:
         observed = _composite_from_trades(trades)
         expected_p = np.sum(null_dist >= observed) / 200
         assert p_value == pytest.approx(expected_p)
+
+
+
+# ---------------------------------------------------------------------------
+# _portfolio_metrics tests
+# ---------------------------------------------------------------------------
+
+class TestPortfolioMetrics:
+    def test_empty_returns(self):
+        m = _portfolio_metrics(np.array([]))
+        assert np.isnan(m["sharpe"])
+        assert np.isnan(m["win_rate"])
+        assert np.isnan(m["pf"])
+        assert np.isnan(m["max_dd"])
+
+    def test_all_wins(self):
+        m = _portfolio_metrics(np.array([0.01, 0.02, 0.03]))
+        assert m["win_rate"] == pytest.approx(1.0)
+        assert m["pf"] == float("inf") or m["pf"] > 100
+
+    def test_all_losses(self):
+        m = _portfolio_metrics(np.array([-0.01, -0.02, -0.03]))
+        assert m["win_rate"] == pytest.approx(0.0)
+        assert m["pf"] == pytest.approx(0.0)

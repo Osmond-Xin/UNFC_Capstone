@@ -98,7 +98,7 @@ class TestMonteCarlo:
 
 
 # ---------------------------------------------------------------------------
-# _portfolio_metrics tests
+# portfolio_metrics tests
 # ---------------------------------------------------------------------------
 
 class TestPortfolioMetrics:
@@ -118,3 +118,30 @@ class TestPortfolioMetrics:
         m = _portfolio_metrics(np.array([-0.01, -0.02, -0.03]))
         assert m["win_rate"] == pytest.approx(0.0)
         assert m["pf"] == pytest.approx(0.0)
+
+
+# ---------------------------------------------------------------------------
+# WalkForward structural tests
+# ---------------------------------------------------------------------------
+
+def _synthetic_trades(start_date: str, end_date: str, **kwargs) -> pd.DataFrame:
+    """Fake run_simulation that returns 20 rows within the requested window."""
+    rng = np.random.default_rng(42)
+    dates = pd.date_range(start_date, end_date, periods=20)
+    n = len(dates)
+    return pd.DataFrame(
+        {
+            "ticker": ["FAKE"] * n,
+            "signal_date": dates - pd.Timedelta(days=1),
+            "entry_date": dates,
+            "exit_date": dates + pd.Timedelta(days=6),
+            "entry_price": rng.uniform(100, 200, n),
+            "exit_price": rng.uniform(100, 200, n),
+            "gross_return": rng.normal(0.005, 0.02, n),
+            "net_return": rng.normal(0.003, 0.02, n),
+            "rsi_at_signal": rng.uniform(12, 22, n),
+            "consecutive_at_signal": rng.integers(3, 5, n),
+            "vix_regime_at_signal": ["Medium"] * n,
+        }
+    )
+

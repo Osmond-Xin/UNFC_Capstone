@@ -4,6 +4,10 @@ __pycache__/
 *.pyc
 .DS_Store
 cache/ai_analysis/
+cache/constituent_data/
 .ipynb_checkpoints/
 *.log
 modules/data/*.backup
+
+# Date-based session docs — kept in working copy only
+doc/2026*/

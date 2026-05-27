@@ -67,7 +67,7 @@ BIIB,Biogen
 BLK,BlackRock
 BX,Blackstone Inc.
 XYZ,"Block, Inc."
-BK,BNY Mellon
+BNY,BNY Mellon
 BA,Boeing
 BKNG,Booking Holdings
 BSX,Boston Scientific
@@ -85,7 +85,7 @@ CPT,Camden Property Trust
 CPB,Campbell's Company (The)
 COF,Capital One
 CAH,Cardinal Health
-CCL,Carnival
+CCL,Carnival Corporation
 CARR,Carrier Global
 CVNA,Carvana
 CASY,Casey's
@@ -133,7 +133,6 @@ CPAY,Corpay
 CTVA,Corteva
 CSGP,CoStar Group
 COST,Costco
-CTRA,Coterra
 CRH,CRH plc
 CRWD,CrowdStrike
 CCI,Crown Castle
@@ -465,6 +464,7 @@ URI,United Rentals
 UNH,UnitedHealth Group
 UHS,Universal Health Services
 VLO,Valero Energy
+VEEV,Veeva Systems
 VTR,Ventas
 VLTO,Veralto
 VRSN,Verisign

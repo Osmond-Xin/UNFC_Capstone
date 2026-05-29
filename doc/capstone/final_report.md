@@ -559,10 +559,10 @@ two-proportion z-test was marginally significant:
 Two-proportion z-test on this subset (High vs. Low, one-sided): z = 1.663, p = 0.048 — which
 *would* support H₂. **However, the High-VIX cell contains only 22 trades**, and the same
 small-sample volatility that produced the inflated OOS metrics in §5.1 applies here. Because
-H₂ is a hypothesis about the *signal's* win rate by regime — not about the top-3 portfolio
-selection — the correct population is the **full triggered-signal universe** (every
-ticker×expiry that fired the rule, before top-3 selection; `ml_validation.ipynb` §3b). On
-that population the High-VIX sample grows from 22 to 207, and the regime gap **disappears**:
+the pre-registered hypothesis test is restricted to this portfolio subset, we conduct a
+**post-hoc robustness expansion** to evaluate the mechanism on the **full triggered-signal universe**
+(every ticker×expiry that fired the rule, before top-3 selection; `ml_validation.ipynb` §3b).
+On that population the High-VIX sample grows from 22 to 207, and the regime gap **disappears**:
 
 | Regime | VIX Range | Full universe (n) | Win Rate | Portfolio top-3 win rate |
 |--------|-----------|-------------------|----------|--------------------------|

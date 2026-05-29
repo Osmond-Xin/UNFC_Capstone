@@ -17,41 +17,59 @@
 
 ## Abstract
 
-This study tests whether a pre-specified rule combining RSI oversold conditions (RSI < 22)
-with consecutive bearish candles (≥ 3 red candles, close-to-close) generates a statistically
-significant and temporally stable positive-return edge in S&P 500 individual stocks on SPY
-monthly options expiry days (the third Friday of each month). Using daily OHLCV data for all
-current S&P 500 constituents over 2015–2026, enriched with VIX, FOMC calendar, and earnings
-release data, a realistic T+1 portfolio simulation is executed with top-3 signal selection
-per expiry cycle, 0.2% round-trip commission, and a 15-position concurrent cap.
+The options-expiry microstructure literature documents a real phenomenon: on monthly
+expiry dates, dealer charm/delta hedging exerts systematic, non-fundamental price pressure
+on the underlying (Baltussen et al., 2025; Golez & Jackwerth, 2012; Ni et al., 2005),
+which — combined with the mean-reverting component of equity prices (Poterba & Summers,
+1988; Kim et al., 1991) — could produce a predictable reversal window. This study tests
+whether that **index- and option-level** mechanism can be captured at the **individual-stock
+level**, *ex ante*, by an operationally simple and retail-executable technical rule:
+RSI oversold (RSI < 22) combined with consecutive bearish candles (≥ 3 red, close-to-close),
+entered on SPY monthly expiry days. Using daily OHLCV data for all current S&P 500
+constituents over 2015–2026, enriched with VIX, FOMC, and earnings data, a realistic T+1
+portfolio simulation is run with top-3 selection per expiry, 0.2% round-trip commission,
+and a 15-position cap.
 
-Statistical validity is assessed via 500-iteration Monte Carlo permutation testing, 8-window
-walk-forward analysis (3-year IS / 1-year OOS), and parameter-sensitivity perturbation. Three
-supervised ML models (Logistic Regression, Random Forest, XGBoost + SHAP) independently
-validate whether RSI and Consecutive_Count dominate the predictive structure.
+Three directional hypotheses were pre-registered: the signal produces an edge distinguishable
+from a permutation null (H₁); that edge is moderated by the VIX volatility regime (H₂); and
+supervised ML confirms the rule features dominate the predictive structure (H₃). The signal
+*structure* (AND-logic of RSI and consecutive candles) and the composite-score weights were
+fixed in advance; the numeric thresholds (RSI < 22, ≥ 3 candles, 6-day hold) were selected by
+in-sample grid search and then frozen before any out-of-sample evaluation. Validity is
+assessed via 500-iteration Monte Carlo permutation testing, 8-window walk-forward analysis,
+parameter-sensitivity perturbation, three supervised ML models (Logistic Regression, Random
+Forest, XGBoost + SHAP), and a large-sample re-test of H₂ on the full triggered-signal
+universe rather than the small top-3 portfolio subset.
 
-**Results:** The strategy produced IS composite score 0.543, OOS composite 0.787 (gap 0.244,
-exceeding the 0.05 threshold), walk-forward mean OOS composite 0.728 across 8 windows
-(positive in 8/8, > 0.5 in 7/8). Monte Carlo permutation test (500 shuffles) yielded
-p = 0.998, placing the observed strategy below the 1st percentile of the null distribution —
-H₁ is not supported at α = 0.05. VIX-regime z-test produced z = 1.663, p = 0.048
-(H₂ supported: high-VIX win rate 72.7% vs. low-VIX 52.4%). ML feature importance showed
-RSI in top-3 for 2/3 models (Random Forest and XGBoost) and Consecutive_Count for 0/3
-models — H₃ is supported on the disjunctive criterion (RSI alone qualifies); VIX_Level
-and MA_Distance_20 are the consistently dominant non-rule features.
+**All three hypotheses are not supported.** H₁: the pre-registered permutation gate fails
+(Monte Carlo p = 1.000), but that gate is a degenerate return-sequencing null (§6.2, §7.5) and
+is not the load-bearing test. The valid test is a **portfolio-level random-entry Monte Carlo**
+(1,000 random portfolios on the rule's own entry dates): the rule's composite (0.557) sits at
+the **62nd percentile**, **p = 0.378** — statistically indistinguishable from random
+stock-picking. A direct **SPY benchmark** confirms this: matched trade-for-trade to SPY over
+identical holding windows, the rule's picks earn a non-significant +0.21%/trade excess
+(p = 0.627, ≈ zero after costs) and compound to **+101% vs. +166%** for simply buying SPY on
+the same dates, with a 54.1% drawdown against SPY's 34.2% — less return for more risk than
+doing nothing. H₂: on
+the **full 718-signal in-sample universe** (not the 22-trade portfolio subset that produced the
+original 72.7% vs. 52.4% gap), the High-VIX win rate (67.6%, n = 207) is essentially equal to
+the Low-VIX win rate (67.3%, n = 110); z = 0.065, p = 0.474, with only a faint continuous
+association remaining (Spearman ρ = 0.076, p = 0.042). The apparent regime edge was a
+small-sample artifact of top-3 selection. H₃: RSI appears in the top-3 importances of only
+1 of 3 models and Consecutive_Count in 0 of 3; the dominant features are VIX_Level,
+MA_Distance, and MACD_Hist — the rule features are not the predictive drivers.
 
-Read together, the three results form a coherent regime-conditional story rather than
-three independent outcomes. H₁ fails globally because the edge is **regime-conditional**:
-averaged across all VIX regimes, the signal is indistinguishable from random entry, but
-within the High-VIX sub-sample it is materially stronger than within Low-VIX (H₂).
-H₃ confirms from an independent supervised-learning angle that RSI carries genuine
-predictive content (in 2/3 models) but is consistently outranked by VIX_Level — the same
-regime variable that drives H₂. The pre-specified RSI + consecutive-candle rule is
-therefore best deployed as a **High-VIX-conditional filter** rather than a universal
-monthly screen (§8.2).
+The three concordant null results, read alongside the high-arbitrage nature of large-cap U.S.
+equities (McLean & Pontiff, 2016; Sullivan et al., 1999), converge on a single conclusion:
+**although the expiry hedging-pressure mechanism is real at the index/option level, it cannot
+be profitably captured, net of costs, at the individual-stock level by this simple ex-ante
+technical rule in the modern, liquid S&P 500 universe.** The contribution of this study is
+therefore not a deployable strategy but (i) a reusable, rigorous framework for falsifying
+event-conditioned technical rules, and (ii) a correctly interpreted null result that separates
+market beta from stock-selection alpha, and mechanism existence from tradeability.
 
-*Keywords:* mean reversion, options expiry, RSI, VIX regime, machine learning,
-walk-forward validation, S&P 500
+*Keywords:* options expiry, dealer hedging, mean reversion, market efficiency, falsification,
+Monte Carlo permutation, walk-forward validation, S&P 500
 
 ---
 
@@ -85,18 +103,20 @@ accessible strategy.
 
 > Do RSI oversold conditions combined with consecutive bearish candles, observed in S&P 500
 > stocks in the days preceding SPY monthly options expiry, produce a positive-return edge
-> that is statistically distinguishable from random entry and temporally stable across
-> out-of-sample periods?
+> that shows evidence of stock-selection alpha beyond broad-market beta, after costs and
+> across out-of-sample periods?
 
 ### 1.3 Hypotheses
 
-All hypotheses are pre-registered (fixed before any parameter search or simulation) and
-evaluated at α = 0.05:
+The signal structure, composite-score weights, and robustness gates were pre-registered before
+simulation. Numeric threshold values were selected inside the in-sample window and then frozen
+before out-of-sample evaluation. All tests are evaluated at α = 0.05:
 
 **H₁ (Primary):** The RSI-oversold + consecutive-candle signal produces a composite score
-statistically higher than the null distribution of random-entry scores (Monte Carlo
-permutation test, 500 shuffles, seed = 42), and exhibits positive composite scores in
-≥ 6 of 8 walk-forward OOS windows.
+that passes the pre-registered Monte Carlo permutation criterion (500 return-order shuffles,
+seed = 42) and exhibits positive composite scores in ≥ 6 of 8 walk-forward OOS windows. This
+permutation gate is a path-ordering diagnostic, not a random-entry/ticker-selection test; §7.5
+explains the limitation.
 
 **H₂ (VIX moderator):** Win rate is materially higher in High-VIX environments (VIX > 25)
 than in Low-VIX environments (VIX < 15). Test: two-proportion z-test, one-sided alternative.
@@ -114,9 +134,10 @@ rule features: at least one of {RSI, Consecutive_Count} appears in top-3 importa
 Daily OHLCV data for all current S&P 500 constituents (~510 tickers) were sourced from
 Stooq.com (free, no API key) using the project's `CacheManager` module. The full download
 covers approximately 2010–2026 per ticker; the analysis window is restricted to
-**2015-01-01 through 2026-05-04** (the latest cached trading day at the time of the
-canonical IS/OOS simulation), yielding ~11 years of monthly expiry cycles across
-~136 expiry dates.
+**2015-01-01 through 2026-05-22** (the latest cached trading day used by the canonical
+current-cache IS/OOS simulation in `spy_expiry_analysis_v2.ipynb`; the in-sample window
+ends 2025-06-30 and the out-of-sample window runs 2025-07-01 → 2026-05-22), yielding ~11
+years of monthly expiry cycles across ~136 expiry dates.
 
 `CacheManager` operates in two modes selected automatically at runtime. In **full-download
 mode**, it iterates all ~510 tickers and fetches complete OHLCV history from Stooq.com
@@ -128,11 +149,14 @@ are already present, identifies the most recent cached date for each ticker, and
 only the missing trading days using the Alpaca Markets REST API (batch size 50, 0.5 s
 delay, within the free-tier 200 req/min limit).
 
-Data integrity is enforced by `DataValidator`, which checks each ticker's DataFrame for
-gaps in the trading-day sequence (missing sessions > 5 consecutive days), duplicate date
-entries, and non-monotonic price sequences (close prices that violate expected ordering).
-Problems are flagged and logged to the caller rather than silently dropped, so the analysis
-can document which tickers were excluded and why. A full `DataValidator` quality report
+Data integrity is enforced by `DataValidator` (`modules/data/data_validator.py`), which checks
+each ticker's DataFrame for: presence of the required OHLCV columns; NaN values in critical
+columns; large date gaps (> 10 trading days); volume and close-price outliers (IQR method,
+reported only when > 5% of rows are affected); single-day extreme price changes (> 50%); and
+OHLC logic consistency (e.g., High ≥ Low, Close within range). Problems are flagged and logged
+to the caller rather than silently dropped, so the analysis can document which tickers were
+excluded and why. (The validator does not check for duplicate dates or price monotonicity;
+an earlier draft incorrectly listed those.) A full `DataValidator` quality report
 across all 510 tickers is produced in `notebooks/eda.ipynb` §3.
 
 ### 2.2 Enrichment Data
@@ -272,9 +296,15 @@ is implemented in `modules/evaluation/metrics.calculate_composite_score()`.
 ### 3.5 Statistical Validation
 
 **Monte Carlo permutation test**: The `net_return` column of `trades_df` is shuffled 500 times
-(seed = 42 set once before the first shuffle), breaking the strategy-signal-return link while
-preserving the return distribution. Each permuted version's composite score forms the null
-distribution. The p-value is `sum(null ≥ observed) / 500`.
+(seed = 42 set once before the first shuffle). This re-orders the realized returns of the
+*already-selected* trades, so it tests whether the observed return *sequence* (and hence the
+equity path / drawdown) is unusual — it is a sequencing/path null, **not** a random-ticker or
+random-entry null, and it leaves the order-invariant composite components (Profit Factor,
+Sharpe, Win Rate) unchanged. Each permuted version's composite score forms the null
+distribution; the p-value is `sum(null ≥ observed) / 500`. §7.5 documents the resulting
+degeneracy when the observed drawdown exceeds the composite's 30% cap, and reports the
+correct **portfolio-level random-entry** test we ran in its place (rule at the 62nd percentile
+of the random-entry null, p = 0.378 — no significant selection skill).
 
 **Walk-forward analysis**: 8 windows of 3-year IS / 1-year OOS (OOS years 2018–2025). IS
 windows slide forward one year at a time (2015–2017, 2016–2018, …, 2022–2024) and overlap
@@ -297,8 +327,13 @@ degrades < 15% at every perturbation level.
 
 The ML feature matrix covers all (ticker, expiry_date) pairs that triggered the signal rule
 in the IS period — not just the top-3 portfolio selections. This produces the full unfiltered
-signal universe for supervised learning (**796 rows × 21 features**; positive class rate
-66.1%).
+signal universe for supervised learning (**801 rows × 21 features**; positive class rate
+66.0%; 718 rows fall in the in-sample window). This same full-universe matrix is used to
+**re-test H₂ at adequate sample size** (§5.2): the High/Low-VIX win-rate z-test and a
+continuous logistic regression of win probability on the raw VIX level are computed on all
+triggered signals, rather than on the 22-trade High-VIX portfolio subset that produced the
+original H₂ result. The small-sample vs. large-sample comparison is implemented and plotted
+in `ml_validation.ipynb` §3b.
 
 Three models are trained on each IS window and evaluated on the corresponding OOS window:
 1. **Logistic Regression** (C = 0.1, standardised features): coefficient table
@@ -307,6 +342,24 @@ Three models are trained on each IS window and evaluated on the corresponding OO
 
 H₃ is tested using the full IS 2015–2025 feature matrix: H₃ is supported if RSI or
 Consecutive_Count appears in the top-3 importances for ≥ 2 of 3 models.
+
+### 3.7 Market-Beta Benchmarks
+
+Three benchmarks separate market beta from stock-selection alpha. All are implemented in
+`outputs/compute_benchmarks.py`, which reads the canonical `trades_df` and is re-runnable
+end-to-end. **(1) SPY matched-window benchmark.** Each of the 177 IS trades is matched to
+SPY's return over its identical entry→exit window; the paired difference (stock − SPY) is the
+per-trade selection excess, tested with a paired *t*-test, and the two return series are also
+compounded over the same windows for a capital-comparable cumulative comparison. SPY daily
+data in the cache begins 2018-01-02, so calendar buy-and-hold figures cover 2018–2026.
+**(2) Portfolio-level random-entry Monte Carlo.** 1,000 random portfolios (seed = 42) are
+drawn using the rule's own entry dates and per-date trade counts, each random ticker held the
+same 6 days net of the same cost; the rule's composite is located in this null distribution.
+This is the valid replacement for the degenerate return-shuffle permutation (§7.5).
+**(3) Expiry vs. non-expiry premium.** The forward 6-day net return of every RSI < 22 &
+≥ 3-red signal in the IS period is split by whether the signal day immediately precedes a
+monthly expiry; means are compared both naively and with each expiry day treated as a single
+clustered observation (§8.2).
 
 ---
 
@@ -383,17 +436,26 @@ windows positive, parameter sensitivity degradation < 15%). The specific *thresh
 (RSI < 22, MIN_CONSECUTIVE = 3, HOLD_DAYS = 6), by contrast, were derived from an in-sample
 grid search documented in `modules/exploration/explore_deep_oversold.py` and frozen as the
 v4.1 parameter set in `modules/config/capstone_v4_params.py` before any out-of-sample
-evaluation. The Monte Carlo and walk-forward tests below are therefore applied only to OOS
-data after this freeze; the IS optimisation is contained inside the IS window and does not
-contaminate the OOS evidence.
-**(2)** Monte Carlo permutation testing controls for the multiple-comparison bias by
-comparing the observed strategy against a null distribution of random-entry strategies on
-the *same expiry dates*. **(3)** Walk-forward validation imposes strict temporal
+evaluation. The Monte Carlo and walk-forward tests below are therefore applied only after this
+freeze; the IS optimisation is contained inside the IS window and does not contaminate the OOS
+evidence.
+**(2)** Monte Carlo permutation testing is retained as a pre-registered return-ordering
+robustness diagnostic, but §7.5 shows that it is degenerate for this composite and should not be
+read as a random-entry selection test. **(3)** Walk-forward validation imposes strict temporal
 discipline by requiring positive performance in 8 independent out-of-sample periods.
 
 Unlike generic technical-rule tests, the RSI-reversal signal is theoretically motivated
 by an event-driven mechanism (charm-driven hedging flows at monthly expiry), providing a
 structural rationale that is falsifiable and not merely a retrospective pattern.
+
+McLean and Pontiff (2016) provide the complementary cautionary result that publicly
+documented return predictors decay substantially after publication — by roughly a third
+out-of-sample and more in liquid, easily arbitraged stocks — as informed capital trades
+against them. For a simple, widely known oversold pattern in S&P 500 large-caps, this
+predicts that any historical edge is likely to have been competed away by the sample period
+studied here, framing a null result as the *expected* outcome under market efficiency rather
+than a surprising one. This study's contribution is to test that expectation rigorously and
+to explain the mechanism-versus-tradeability gap when the null is confirmed.
 
 ### 4.4 Synthesis and Contribution
 
@@ -412,89 +474,141 @@ threads into a single, testable analytical framework.
 
 ## 5. Key Findings
 
-The three hypotheses are reported individually in §5.1–§5.3, but they are best read as
-a single regime-conditional story rather than three independent results. H₁ (universal
-edge) is **not supported**, H₂ (VIX-regime moderation) is **supported**, and H₃ (rule
-features dominate ML feature importance) is **supported** on the disjunctive criterion —
-RSI is in top-3 for 2/3 models (Random Forest and XGBoost), although Consecutive_Count
-is in top-3 for 0/3 models and VIX_Level outranks RSI in every model. The same underlying
-fact produces all three results: the signal's effectiveness is conditioned on the
-volatility regime. H₁ fails because averaging across regimes dilutes the High-VIX edge;
-H₂ succeeds because it isolates that edge; H₃ confirms RSI carries genuine predictive
-content while simultaneously identifying VIX_Level — the same regime variable from H₂ —
-as the more dominant signal. §8.2 turns this into a deployment recommendation
-(VIX-conditional filter).
+The three pre-registered hypotheses are reported individually in §5.1–§5.3, and they are
+best read as a single concordant story: **all three are not supported.** H₁ (the primary
+robustness gate) is **not supported** (Monte Carlo p = 1.000); H₂ (VIX-regime moderation)
+is **not supported** once tested on the full signal universe rather than the 22-trade
+portfolio subset (z = 0.065, p = 0.474); and H₃ (rule features dominate ML importance) is
+**not supported** (RSI in top-3 for only 1/3 models, Consecutive_Count for 0/3). The three
+results reinforce one another: the pre-registered permutation criterion fails (H₁), though
+that test is degenerate (§5.1, §7.5) and the load-bearing evidence is the valid random-entry
+Monte Carlo (rule at the 62nd percentile, p = 0.378) together with the SPY benchmark, which
+show the rule's picks earn no significant excess over random selection or over simply holding
+SPY on the same dates (§5.5); the
+one apparent exception — a high-VIX edge — dissolves under proper sample size and is exposed
+as an artifact of selecting the three most-oversold names per expiry (H₂); and an independent
+supervised-learning view confirms the rule features are not the predictive drivers, which are
+instead VIX_Level, MA_Distance, and MACD_Hist (H₃). §5.5 explains *why* — gross profit in this
+long-only backtest is dominated by market beta, not stock-selection alpha — and §8 develops the
+implication: in the modern liquid S&P 500 universe, this expiry mean-reversion rule is not a
+deployable edge, consistent with high-arbitrage market efficiency.
 
 ### 5.1 H₁ — Primary Signal Edge
 
 The IS portfolio simulation over 2015 — mid-2025 produced **177 trades** with the
-following performance metrics:
+following performance metrics (current-cache run):
 
 | Metric | IS Value | OOS Value | Pass Criterion |
 |--------|----------|-----------|----------------|
-| Profit Factor | 1.33 | 1.88 | > 1.0 |
-| Sharpe Ratio | 1.36 | 3.32 | > 0 |
-| Win Rate | 53.1% | 57.1% | > 50% |
-| Max Drawdown | 56.3% | 21.4% | < 30% |
-| **Composite Score** | **0.5433** | **0.7868** | IS/OOS gap < 0.05 |
+| Profit Factor | 1.35 | 2.84 | > 1.0 |
+| Sharpe Ratio | 1.43 | 5.46 | > 0 |
+| Win Rate | 53.1% | 58.3% | > 50% |
+| Max Drawdown | 54.1% | 21.4% | < 30% |
+| **Composite Score** | **0.5567** | **0.8096** | IS/OOS gap < 0.05 |
+
+(IS window 2015-01-01 → 2025-06-30, 177 trades; OOS window 2025-07-01 → 2026-05-22,
+24 trades — the canonical current-cache run in `spy_expiry_analysis_v2.ipynb`.)
 
 The Monte Carlo permutation test (500 shuffles, seed = 42) produced a p-value of
-**0.998**. H₁ is **NOT SUPPORTED** at α = 0.05: the observed composite (0.543) placed
-below the 1st percentile of the null distribution (mean = 0.544), meaning ~99.8% of
-random-entry permutations achieved equal or higher performance.
+**1.000**, so H₁'s pre-registered MC sub-criterion (p < 0.05) **fails**. We are careful not
+to over-read this number. The test shuffles the `net_return` column of the *already-selected*
+trades; it therefore holds the set of selected trades fixed and only re-orders their returns,
+which changes the equity path (and hence Max Drawdown) but leaves Profit Factor, Sharpe, and
+Win Rate unchanged (these are permutation-invariant). Because the observed Max Drawdown
+(54.1%) already exceeds the composite's 30% drawdown cap — saturating that sub-score to its
+floor of 0 — every permutation necessarily scores ≥ the observed composite, forcing
+p = 1.000 as a near-mathematical certainty (§7.5). This permutation test is thus a
+return-sequencing/path null, **not** a test of random ticker/entry selection, and it is
+degenerate for the present composite.
 
-The IS/OOS composite gap is **0.244** (**FAILS** threshold < 0.05). Notably, the OOS
-composite (0.787) exceeds the IS composite (0.543), indicating the strategy did not
-overfit in-sample — the gap reflects the brevity of the OOS window (~10 months, 21 trades)
-rather than degradation.
+Because the pre-registered permutation gate is uninformative here, the substantive test of
+H₁ is the **portfolio-level random-entry Monte Carlo** described in §7.5: 1,000 random
+portfolios drawn on the rule's own entry dates and per-date trade counts, so that Profit
+Factor, Sharpe, Win Rate, and Max Drawdown all vary under the null. On that valid test the
+rule's composite (0.557) sits at the **62nd percentile** of the random-entry distribution
+(null median 0.494), **p = 0.378** — the rule is statistically **indistinguishable from
+random stock-picking** on the same dates. This is the load-bearing H₁ result, and it agrees
+with the SPY benchmark (§5.5: the rule's picks earn no significant excess over simply buying
+SPY for the same holding windows), the regime analysis (§5.2), and the ML feature analysis
+(§5.3). **H₁ is not supported.**
+
+The IS/OOS composite gap is **0.253** (**FAILS** threshold < 0.05). Notably, the OOS
+composite (0.810) exceeds the IS composite (0.557), so the gap reflects the brevity and
+small trade count of the OOS window (~10 months, 24 trades), not in-sample overfitting —
+a small sample simply produces high metric volatility. This same small-sample fragility,
+seen here in the OOS window, is exactly what inflated the original H₂ result (§5.2).
 
 H₁ has two sub-criteria: MC p < 0.05 **and** ≥ 6 of 8 walk-forward windows with positive
 composite. The walk-forward criterion **passes** (8/8 positive; §5.4), but the MC criterion
-**fails** (p = 0.998). Because both must hold for H₁ to be supported, H₁ overall is **not
-supported**.
+**fails** (p = 1.000, for the degenerate reason explained in §7.5). Because both must hold
+for H₁ to be supported, H₁ overall is **not supported**. The walk-forward positivity is itself explained in §5.5: in a rising
+market, long-only entries are positive on average regardless of the entry signal.
 
 ### 5.2 H₂ — VIX Regime Moderation
 
-Win rates by VIX regime:
+The original test was run on the **177 portfolio trades** (top-3 most-oversold names per
+expiry). On that subset the High-VIX win rate looked much higher than Low-VIX, and the
+two-proportion z-test was marginally significant:
 
-| Regime | VIX Range | Trades | Win Rate |
-|--------|-----------|--------|----------|
+| Regime | VIX Range | Portfolio top-3 (n) | Win Rate |
+|--------|-----------|---------------------|----------|
 | Low | VIX < 15 | 63 | 52.4% |
 | Medium | 15 ≤ VIX ≤ 25 | 92 | 48.9% |
-| High | VIX > 25 | 22 | 72.7% |
+| High | VIX > 25 | **22** | **72.7%** |
 
-Two-proportion z-test (High vs. Low, one-sided): z = 1.663, p = 0.048.
-H₂ is **SUPPORTED** at α = 0.05: win rate in High-VIX environments (72.7%) is
-statistically significantly higher than in Low-VIX environments (52.4%).
+Two-proportion z-test on this subset (High vs. Low, one-sided): z = 1.663, p = 0.048 — which
+*would* support H₂. **However, the High-VIX cell contains only 22 trades**, and the same
+small-sample volatility that produced the inflated OOS metrics in §5.1 applies here. Because
+the pre-registered hypothesis test is restricted to this portfolio subset, we conduct a
+**post-hoc robustness expansion** to evaluate the mechanism on the **full triggered-signal universe**
+(every ticker×expiry that fired the rule, before top-3 selection; `ml_validation.ipynb` §3b).
+On that population the High-VIX sample grows from 22 to 207, and the regime gap **disappears**:
+
+| Regime | VIX Range | Full universe (n) | Win Rate | Portfolio top-3 win rate |
+|--------|-----------|-------------------|----------|--------------------------|
+| Low | VIX < 15 | 110 | 67.3% | 52.4% |
+| Medium | 15 ≤ VIX ≤ 25 | 401 | 66.6% | 48.9% |
+| High | VIX > 25 | 207 | 67.6% | 72.7% |
+
+Two-proportion z-test on the full universe (High vs. Low, one-sided): **z = 0.065, p = 0.474**.
+A continuous treatment (logistic regression of win probability on the raw VIX level) leaves
+only a faint association (coefficient +0.145, likelihood-ratio p = 0.076; Spearman ρ between
+VIX and net return = 0.076, p = 0.042). **H₂ is NOT SUPPORTED.** The apparent High-VIX edge
+was an artifact of evaluating only the 22 most-oversold High-VIX names; across all High-VIX
+signals the win rate (67.6%) is indistinguishable from the Low-VIX win rate (67.3%) and from
+the unconditional base rate (~66%). Figure (notebook §3b) plots the two samples side by side.
 
 ### 5.3 H₃ — ML Feature Validation
 
 Feature importance results across three models (full IS period 2015 — mid-2025, feature
-matrix 796 rows × 21 features):
+matrix 801 rows × 21 features, positive class rate 66.0%):
 
 | Feature | LR \|Coefficient\| Rank | RF Permutation Rank | XGBoost SHAP Rank |
 |---------|------------------------|---------------------|-------------------|
-| RSI | 5 | **3** | **3** |
-| Consecutive_Count | 8 | — (outside top 10) | — (outside top 10) |
+| RSI | outside top 3 | — (outside top 3) | **2** |
+| Consecutive_Count | outside top 3 | — (outside top 3) | — (outside top 3) |
 
-Top-3 features by model — **LR**: VIX_Level, MA_Distance_20, VIX_Regime_enc;
-**RF**: MACD_Hist, MA_Distance_20, RSI; **XGBoost**: VIX_Level, MA_Distance_20, RSI.
+Top-3 features by model — **LR**: VIX_Level, MA_Distance, VIX_Regime_enc;
+**RF**: MACD_Hist, MA_Distance_20, BB_Middle; **XGBoost (SHAP)**: VIX_Level, RSI, Volume_Ratio.
 
-RSI appeared in top-3 for **2/3 models** (RF and XGBoost);
+RSI appeared in top-3 for only **1/3 models** (XGBoost);
 Consecutive_Count appeared in top-3 for **0/3 models**.
 
-H₃ is **SUPPORTED** under the pre-registered disjunctive criterion (≥ 1 of the rule features
-in top-3 for ≥ 2 of 3 models): RSI alone clears the bar. The substantive caveat is that
-VIX_Level outranks RSI in 2 of 3 models (LR coefficient #1, XGBoost SHAP #1), and
-MA_Distance_20 outranks RSI in all 3 — meaning the rule captures genuine predictive
-content but is not the dominant predictor. Consecutive_Count contributes weakly and is
-not selected by any model. The dominance of VIX_Level is the same regime feature that
-drives H₂, and the two results converge on the same conclusion (§5 intro).
+H₃ is **NOT SUPPORTED** under the pre-registered criterion (≥ 1 rule feature in top-3 for
+≥ 2 of 3 models): only XGBoost ranks RSI in its top-3, and no model ranks Consecutive_Count.
+Notably, in the earlier (frozen) cache RSI was borderline top-3 in 2 models; on the current
+cache it falls out of the Random Forest top-3 (replaced by BB_Middle). That an indicator's
+top-3 membership flips with a minor data refresh is itself evidence that RSI's importance is
+**not robust** — it hovers near rank 3 rather than being a stable driver. The consistently
+dominant features across both runs are VIX_Level, MA_Distance, and MACD_Hist; the rule
+features are not the predictive structure the ML models rely on.
 
-ML walk-forward OOS composites (8-window mean, comparable to the rule-based 0.543 in
-§5.1): **Logistic Regression 0.803**, **Random Forest 0.814**, **XGBoost 0.800** —
-materially higher than the rule-based baseline, confirming that ML models with access to
-the full feature set extract additional signal beyond the pre-specified rule.
+ML walk-forward OOS composites (8-window mean): **Logistic Regression 0.799**,
+**Random Forest 0.812**, **XGBoost 0.790** — higher than the rule-based 0.557 baseline
+(§5.1). This does **not** indicate a tradeable ML edge: the elevated composites are
+produced on the same long-only, top-3 portfolio mechanics in a rising market (the beta
+effect explained in §5.5), and the ML models' predictions are driven by VIX_Level and
+MA_Distance, not by the pre-registered RSI/consecutive-candle rule.
 
 ### 5.4 Walk-Forward Stability
 
@@ -507,11 +621,52 @@ the full feature set extract additional signal beyond the pre-specified rule.
 | 2022 | 2019–2021 | 0.550 |
 | 2023 | 2020–2022 | 0.073 |
 | 2024 | 2021–2023 | 0.806 |
-| 2025 | 2022–2024 | 0.686 |
-| **Mean** | | **0.728** |
+| 2025 | 2022–2024 | 0.781 |
+| **Mean** | | **0.739** |
 
 Number of windows with composite > 0 (positive performance): **8/8**.
 Number of windows with composite > 0.5: **7/8**.
+
+Walk-forward positivity is **not** in tension with the H₁ null. A positive composite means
+the long-only portfolio made money in that OOS year — but so would almost any long-only
+entry rule in a rising market (§5.5). The Monte Carlo test (§5.1) fails the pre-registered
+criterion, but §7.5 shows it is a return-ordering diagnostic rather than a valid selection-edge
+test. Walk-forward confirms the strategy is not unstable or catastrophic, not that it has a
+stock-selection edge.
+
+### 5.5 Why the Null — Beta, Not Alpha
+
+The single fact that reconciles every result above is that **the strategy's gross profit is
+market beta, not stock-selection alpha.** The simulation is long-only over 2015–2026, a period
+in which the S&P 500 rose substantially. In such a market, buying almost any large-cap stock
+and holding it six trading days has a positive expected return. Four observations make this
+concrete:
+
+1. **The most-oversold selection does not add skill — if anything it subtracts it.** The 177
+   top-3 selected trades win only **53.1%** of the time (§5.1), which is *below* the **~67%**
+   win rate of the full triggered-signal universe (§5.2). Ranking by lowest RSI picks names
+   that recover *less* often than the average signal, so the selection rule shows no positive
+   stock-selection skill over the signal set it draws from.
+2. **The rule's picks earn no significant excess over SPY on the same dates.** Matching every
+   one of the 177 trades to SPY's return over the identical entry→exit window, the per-trade
+   excess is **+0.21%** gross (mean stock 0.78% vs SPY 0.58%), **not significant** (paired
+   t = 0.49, p = 0.627), and essentially zero after the 0.2% round-trip cost. Compounded over
+   the same 177 windows, putting the capital into the rule's picks returns **+101%** versus
+   **+166%** for simply buying SPY on those dates, and the rule beats SPY in only **45%** of
+   the windows. Over the 2018–2026 span where daily SPY data is available, buy-and-hold SPY
+   returned **+151%** (CAGR **11.9%**) with a **34.2%** maximum drawdown — versus the rule's
+   **54.1%** in-sample drawdown. The rule delivers *less* return for *more* risk than doing
+   nothing.
+3. **Regime conditioning adds nothing** once sample size is adequate (H₂ flat at ~67%, §5.2).
+4. **ML attributes predictions to VIX_Level and MA_Distance, not the rule** (H₃, §5.3), and
+   even the ML composites are earned on the same long-only mechanics in a rising market.
+
+The 54% in-sample max drawdown further shows that the equal-weight, sequentially-compounded
+return series is not an investable curve so much as an accounting artifact of a high-beta,
+long-only sleeve. Distinguishing beta from alpha is the crux: the rule "makes money" only in
+the trivial sense that long exposure to rising large-caps makes money, which is not what H₁
+claimed and not a stock-selection edge. The SPY-benchmark and matched-window figures are
+produced by `outputs/compute_benchmarks.py` from the same `trades_df`.
 
 ---
 
@@ -525,24 +680,31 @@ rather than re-derived here.
 
 ### 6.1 IS/OOS Holdout Split
 
-The in-sample period (2015-01-01 → 2025-06-30) produced composite score 0.5433.
-The out-of-sample period (2025-07-01 → 2026-05-04) produced 0.7868.
-The absolute gap of **0.244** **FAILS** the pre-specified threshold of 0.05.
+The in-sample period (2015-01-01 → 2025-06-30) produced composite score 0.5567.
+The out-of-sample period (2025-07-01 → 2026-05-22) produced 0.8096.
+The absolute gap of **0.253** **FAILS** the pre-specified threshold of 0.05.
 
-This result **challenges** the formal generalisability criterion. However, the OOS composite
-is higher than the IS composite, which indicates no overfitting — the gap is driven by the
-very small OOS trade count (21 trades over ~10 months), which produces high metric volatility
-rather than strategy degradation.
+The OOS composite is higher than the IS composite, so the gap is not in-sample overfitting;
+it is driven by the very small OOS trade count (24 trades over ~10 months), which produces
+high metric volatility. This same small-sample volatility is what produced the spurious H₂
+result on the 22-trade High-VIX subset (§5.2) — a recurring caution throughout this study
+that sub-100-trade samples cannot support confident inference.
 
 ### 6.2 Monte Carlo Permutation Test
 
-The null distribution mean was 0.544 (σ very small, distribution tightly concentrated near
-0.543–0.544). The observed composite 0.543 placed **below the 1st percentile** of the null
-distribution, yielding p = 0.998 (499 of 500 permutations achieved an equal or higher
-score). This **does not support** rejecting H₀ at α = 0.05. The strategy's IS composite is
-statistically indistinguishable from — and in fact slightly lower than — random signal
-placement on the same expiry dates when averaged across all VIX regimes; §5.2 / §8.2 show
-this aggregate result masks a regime-conditional edge that survives in High-VIX months.
+The observed composite 0.557 placed at the bottom of the null distribution, yielding
+p = 1.000 (all 500 permutations achieved an equal or higher score), so the pre-registered
+MC criterion is not met. **This p-value is, however, a degenerate artifact of the composite
+design rather than independent evidence of randomness**, and should not be read as "the
+signal is statistically indistinguishable from random entry." As §7.5 derives, three of the
+four composite components (Profit Factor, Sharpe, Win Rate) are invariant under shuffling
+`net_return`, so the only component that varies is Max Drawdown; because the observed
+drawdown (54.1%) already saturates that component to its floor (0), every permutation must
+score ≥ the observed composite, forcing p = 1.000. The permutation test therefore neither
+supports nor refutes a selection edge here — it is uninformative for this composite. The
+substantive conclusion that no tradeable edge exists rests on §5.2 (the High-VIX advantage
+disappears on the full signal universe), §5.3 (ML does not rely on the rule features), and
+§5.5 (gross return is market beta; the full-universe win rate equals the base rate).
 
 ### 6.3 Walk-Forward Analysis
 
@@ -558,13 +720,13 @@ this aggregate result masks a regime-conditional edge that survives in High-VIX 
 
 ### 6.4 Parameter Sensitivity
 
-Parameter perturbation results, baseline composite **0.5433** (same baseline as §5.1):
+Parameter perturbation results, baseline composite **0.5567** (same baseline as §5.1):
 
 | Parameter | Baseline | −20% | −10% | +10% | +20% | All Pass? |
 |-----------|----------|------|------|------|------|-----------|
-| rsi_threshold (22→18/20/24/26) | 0.5433 | 0.6914 | 0.6758 | 0.5811 | 0.5468 | ✅ Yes |
-| min_consecutive (3→2/3/3/4) | 0.5433 | 0.7001 | 0.5433 | 0.5433 | 0.7134 | ✅ Yes |
-| hold_days (6→5/5/7/7) | 0.5433 | 0.6374 | 0.6374 | 0.5689 | 0.5689 | ✅ Yes |
+| rsi_threshold (22→18/20/24/26) | 0.5567 | 0.6979 | 0.6875 | 0.5935 | 0.5577 | ✅ Yes |
+| min_consecutive (3→2/3/3/4) | 0.5567 | 0.7001 | 0.5567 | 0.5567 | 0.7134 | ✅ Yes |
+| hold_days (6→5/5/7/7) | 0.5567 | 0.6406 | 0.6406 | 0.5808 | 0.5808 | ✅ Yes |
 
 Pass criterion: composite degrades < 15% at every perturbation level. **All 12 perturbations
 pass**; in fact, every perturbation produced a composite ≥ baseline, meaning no nearby
@@ -614,20 +776,26 @@ baseline.
 
 | Universe | Tickers | Trades | Win Rate | Profit Factor | Sharpe | Max DD | Composite |
 |----------|---------|--------|----------|---------------|--------|--------|-----------|
-| Full 2026 (baseline) | 503 | 177 | 53.1% | 1.33 | 1.36 | 56.3% | 0.5433 |
-| Frozen 2015 proxy | 453 | 171 | 55.0% | 1.47 | 1.80 | 46.6% | 0.6375 |
+| Full 2026 (baseline) | 503 | 177 | 53.1% | 1.35 | 1.43 | 54.1% | 0.5567 |
+| Frozen 2015 proxy | 453 | 171 | 55.0% | 1.44 | 1.71 | 46.6% | 0.6176 |
 
-The frozen 2015 universe produced a **higher** composite score (+0.094, +17.3%) than the
+The frozen 2015 universe produced a **higher** composite score (+0.061, +11.0%) than the
 full universe. This result is the **opposite** of the expected survivorship-bias inflation:
 the 50 post-2015 additions (high-growth, high-volatility names) drag the strategy's
 composite score down rather than inflating it. This is plausible because RSI < 22 oversold
 signals in highly volatile post-IPO stocks tend to be false recoveries, not mean-reversion
 opportunities driven by expiry hedging flows.
 
-**Conclusion:** The survivorship bias does not inflate returns in this strategy; if anything,
-the current universe inclusion is slightly pessimistic relative to a 2015-cohort baseline.
-Walk-forward evaluation further mitigates the concern since OOS returns are earned after
-the training window closes.
+**Conclusion (appropriately scoped).** This check shows only that the **post-2015 additions**
+present in the current cache do not inflate the result — if anything they drag it down. It does
+**not** establish that survivorship bias is absent, because the "2015 proxy" is **not** a
+point-in-time S&P 500 membership list: it is built from the *current* cache and therefore still
+omits the very companies that survivorship bias is about — constituents that were removed or
+delisted between 2015 and 2026 (the failures). Those names leave no CSV in the cache and so
+cannot enter either universe. A rigorous treatment requires a true point-in-time constituent
+history with delisted tickers (§8.3); the present check should be read as "current additions do
+not flatter the result," not as "returns are free of survivorship bias." Walk-forward evaluation
+partially mitigates the concern, since OOS returns are earned after each training window closes.
 
 ### 7.2 Take-Profit Calibration — Recalibrated with RSIReversalStrategy
 
@@ -638,7 +806,11 @@ hypotheses tested in this report — to produce entry signals. The resulting exi
 parameters could not legitimately be applied to `RSIReversalStrategy`, since exit
 calibration is sensitive to the entry distribution. The notebook has been fully
 recalibrated for this capstone using RSIReversalStrategy entries from the IS period
-(807 signals, 500 randomly sampled for the grid search, IS window 2015–2025).
+(807 raw RSIReversalStrategy signals in this exit-grid scan, 500 randomly sampled for the
+grid search, IS window 2015–2025). This 807 is a separate raw-signal count for the
+take-profit grid and is not the same population as the §3.6 ML feature matrix (801 rows
+across 2015–2026, of which 718 fall in the in-sample window after dropping rows with any
+missing feature).
 
 **Grid search results across six exit strategies:**
 
@@ -646,14 +818,23 @@ recalibrated for this capstone using RSIReversalStrategy entries from the IS per
 |---------------|-----------|----------|--------|---------------|---------------|
 | rsi_exit (RSI > 75) | **2.73%** | 51.4% | 0.230 | **1.90** | 25.9 |
 | rsi_exit (RSI > 65) | 2.45% | **59.0%** | 0.241 | **1.99** | 21.0 |
-| time_based (6 days, baseline) | 2.27% | 57.4% | — | — | 16.5 |
+| time_based (20-day cap) | 2.27% | 57.4% | 0.255 | 2.08 | 16.5 |
 | fixed_pct (tp=5%) | 1.50% | **63.0%** | 0.242 | 1.65 | 15.1 |
 | trailing_stop (10%) | 2.27% | 44.4% | 0.219 | 1.75 | 35.2 |
 | fixed_pct (tp=15%) | 2.41% | 44.6% | 0.236 | 1.71 | 31.3 |
 
+**Note on the time-based row.** `TakeProfitBacktester` defines `time_based` with a default
+`hold_days = 20` (and a 60-day max-hold backstop), so its average realized hold is 16.5 days —
+*not* the capstone's frozen `HOLD_DAYS = 6`. This exploratory grid therefore compares exit
+*styles* against a 20-day time-based exit as its internal baseline; it is **not** a direct
+6-day benchmark. (An earlier draft mislabeled this row "6 days, baseline" and left its Sharpe
+and Profit Factor blank; both are corrected here from the notebook output: Sharpe 0.255,
+Profit Factor 2.08.) A clean comparison against the capstone's true 6-day hold would require
+re-running `time_based` with `hold_days = 6`, which is noted as a follow-up.
+
 **Recommended exit upgrade:** `rsi_exit` with threshold = 65–70 delivers the best
 win-rate-adjusted performance: 59.0% win rate at 2.45% average return (vs. 57.4% /
-2.27% for the fixed hold). This exit type is supported by `run_simulation(exit_params=
+2.27% for the 20-day time-based exit). This exit type is supported by `run_simulation(exit_params=
 {'exit_type': 'rsi_exit', 'rsi_exit_threshold': 65})`. The current capstone results
 use the conservative fixed-hold baseline; applying rsi_exit(65) would likely improve
 the composite score.
@@ -686,58 +867,108 @@ sector rotation). Equal-weight sizing ignores position-specific risk; a risk-par
 volatility-scaled approach could produce better risk-adjusted returns but would introduce
 additional optimisation degrees of freedom.
 
+### 7.5 Degeneracy of the Monte Carlo Permutation Test
+
+The Monte Carlo test as implemented (§3.5) shuffles the `net_return` column of the selected
+trades. This has two consequences that limit what the resulting p-value can support, and both
+are material to how H₁ should be read.
+
+**(1) Three of the four composite components are permutation-invariant.** Profit Factor, the
+per-trade Sharpe ratio (mean/std of returns), and Win Rate depend only on the *set* of returns,
+not their order; shuffling leaves them unchanged. Only Max Drawdown — computed on the
+sequentially compounded equity curve — varies across permutations. The permutation test is
+therefore, in effect, a test of the return *ordering* (drawdown) alone, and carries no
+discriminating power over the other three-quarters of the composite.
+
+**(2) The p-value is forced to 1.000 whenever observed drawdown exceeds the 30% cap.** The
+composite's drawdown term is `(1 − min(|MDD|/0.30, 1)) × 0.15`, which saturates to 0 for any
+drawdown ≥ 30%. The observed in-sample drawdown is 54.1%, so the observed composite already
+takes the minimum possible drawdown sub-score (0). Every permutation's drawdown sub-score is
+≥ 0, and the other three components are identical, so **every** permuted composite is ≥ the
+observed composite — making p = 1.000 a near-mathematical certainty rather than a measurement
+of randomness. Concretely, the observed composite decomposes as PF 0.236 + Sharpe 0.215 +
+Win Rate 0.106 + Drawdown 0.000 = 0.557, and no permutation can score below 0.557.
+
+**Implication.** The p = 1.000 in §5.1/§6.2 should not be cited as evidence that "the signal
+is no better than random entry." It is an artifact of (i) saturating the drawdown sub-score and
+(ii) the permutation null only varying that one sub-score. A correct test of selection edge
+resamples the *entries themselves* — drawing random (ticker, expiry-date) pairs on the
+strategy's actual entry dates and re-running the portfolio, so that Win Rate, Profit Factor,
+and Sharpe also vary under the null.
+
+**We implemented this portfolio-level random-entry Monte Carlo** (1,000 iterations, seed = 42,
+same entry dates and per-date trade counts as the rule, same hold and cost; re-runnable via
+`outputs/compute_benchmarks.py`). The rule's composite (0.557) sits at the **62nd percentile**
+of the random-entry null (null median 0.494), **p = 0.378** — modestly above the random median
+but **not statistically significant**. So the
+proper test, unlike the degenerate shuffle-MC, *can* discriminate, and its verdict is the same
+in substance: **no demonstrated stock-selection skill** (the rule does not beat random picking
+at any conventional significance level). This same procedure is the core of the public
+**Edge or Beta?** tool (`doc/design/edge_or_beta_tool_design.md`), which races any rule against
+random stock picks, random ETF timing, and buy-and-hold SPY. The no-edge conclusion is thus
+corroborated by this proper random-entry test (p = 0.378) and, independently, by the
+large-sample H₂ result (§5.2), the ML feature analysis (§5.3), and the beta-vs-alpha
+decomposition (§5.5).
+
 ---
 
 ## 8. Practical Implications
 
-### 8.1 Implications of the H₂ Finding — Conditional Use Case
+### 8.1 No Deployable Edge — the Honest Practical Takeaway
 
-H₁ is not supported as a universal monthly screen (MC p = 0.998). H₃ confirms RSI is a
-genuine predictor (top-3 in 2/3 ML models) but is consistently outranked by VIX_Level and
-MA_Distance_20, and Consecutive_Count adds little. The practical value of this work
-therefore comes from the **H₂ finding**: the RSI-oversold + consecutive-candle signal
-generates a materially higher win rate in High-VIX environments (72.7% vs. 52.4%,
-z = 1.663, p = 0.048) than in Low-VIX environments. The framework should be deployed
-conditionally rather than as an always-on monthly strategy.
+The most important practical implication is a negative one, and it should be stated plainly:
+**this rule is not a deployable trading edge in the S&P 500 universe.** All three hypotheses
+were not supported — the primary H₁ permutation gate fails and is degenerate rather than a
+valid random-entry test, the apparent High-VIX advantage is a small-sample artifact that
+vanishes on the full signal universe (H₂, p = 0.474), and ML attributes predictive structure
+to volatility/position features rather than the rule (H₃). What positive return the backtest
+shows is market beta from long exposure to a rising market, not stock-selection alpha (§5.5).
 
-A trader applying this work as a **VIX-conditional filter** would:
+For a practitioner, the actionable conclusion is therefore: **do not trade this rule as a
+source of alpha.** An investor seeking the return the backtest displays should simply hold a
+low-cost broad-market index fund, which delivers the same beta with lower turnover, lower
+transaction costs, and a far smaller drawdown than the 54% equal-weight in-sample figure here.
+The earlier draft of this report recommended a "VIX-conditional filter"; that recommendation
+is **withdrawn**, because the H₂ result it rested on does not survive an adequately powered test.
 
-1. On the Thursday before each monthly expiry, read the VIX close. If VIX < 20, **skip
-   the cycle**; if VIX ≥ 25, proceed.
-2. Run `RSIReversalStrategy` across the S&P 500 universe and select the 1–3 stocks with
-   the lowest RSI that also satisfy ≥ 3 consecutive red candles.
-3. Enter long positions at the Friday open.
-4. Exit 6 trading days later (the following Thursday or Friday).
+### 8.2 Why a Real Mechanism Need Not Yield a Tradeable Rule
 
-Conditional deployment reflects what the analysis actually supports — a regime-conditional
-edge — rather than the universal monthly screen originally hypothesised under H₁. §8.2
-describes the broader VIX-overlay framework this implies.
+The expiry hedging-pressure mechanism (§4.1) is real and well documented — but at the **index
+and option level**, and as a property of *derivative payoffs* rather than of a retail-executable
+long position in individual stocks. Three reasons explain why a genuine mechanism does not
+translate into a profitable individual-stock rule here:
 
-### 8.2 VIX Regime Overlay — Primary Practical Recommendation
+1. **Level and instrument mismatch.** Baltussen et al. (2025) and Golez & Jackwerth (2012)
+   identify the effect in index/futures/option prices; capturing it generally requires
+   options or index instruments, not a long-only equity screen.
+2. **Magnitude vs. cost.** Even where present in individual names, the distortion is small
+   relative to the 0.2% round-trip cost and the idiosyncratic noise of single stocks; it is
+   not separable from that noise by an RSI/consecutive-candle proxy.
+3. **Arbitrage and decay.** Large-cap U.S. equities are among the most heavily arbitraged
+   assets; documented anomalies decay after publication, particularly in liquid names
+   (McLean & Pontiff, 2016; Sullivan et al., 1999; Fama, 1991). A simple, widely known oversold
+   rule is exactly the kind of signal that competition removes.
 
-H₂ is empirically supported (z = 1.663, p = 0.048; High-VIX win rate 72.7% vs.
-Low-VIX 52.4%) and is the strongest practical result of this study. Three concrete uses
-follow:
+The data show the mechanism's footprint without its tradeability. Splitting the forward 6-day
+net return of every RSI < 22 & ≥ 3-red signal by expiry timing, signals on the day **before**
+a monthly expiry returned **+1.55%** on average versus **+0.39%** on all other days (a +1.16%
+gap; 66.9% vs. 55.5% win rate). Taken naively across 14,508 signals the gap is highly
+significant, but the 815 pre-expiry signals cluster within only **84 independent expiry days**;
+treating each expiry day as one observation, the difference is **not significant** (clustered
+*t* = 1.67, p = 0.10). So a real, directionally-correct expiry footprint exists in the raw
+returns — consistent with the documented hedging mechanism — yet it is statistically fragile
+and, once funnelled through top-3 selection and transaction costs, produces no edge over SPY
+(§5.5) or random entry (§7.5). **Mechanism existence ≠ ex-ante tradeability.**
 
-1. **VIX gate.** Trade only when the VIX close on the signal date is ≥ 25. This converts
-   the strategy from a monthly screen into a regime-triggered event filter, aligning
-   execution with the regime where the mean-reversion mechanism documented by
-   Kim et al. (1991) is strongest.
-2. **VIX-scaled position sizing.** When trading is enabled (VIX ≥ 20), scale position
-   size linearly with VIX level (e.g., 0.5× allocation at VIX = 20, 1.0× at VIX = 30,
-   capped at 1.5× above VIX = 35). This down-weights Medium-VIX trades, which showed
-   the weakest IS win rate (48.9%, n = 92).
-3. **Skip Low-VIX cycles entirely.** When VIX < 15, the IS win rate was 52.4% — below
-   the level needed to overcome 0.2% round-trip commission with the observed average
-   trade magnitude. No-trade is the optimal action.
-
-The VIX overlay is the **recommended primary deployment** of this work and replaces the
-universal monthly screen originally hypothesised under H₁.
+This is the central interpretive contribution: distinguishing **mechanism existence** (true)
+from **ex-ante tradeability at the stock level, net of costs** (not supported here).
 
 ### 8.3 Limitations for Live Deployment
 
-The study evaluates a backtested strategy on historical data with known survivorship
-bias. Before deploying capital, practitioners should:
+This study evaluates a backtested rule on historical data and finds no deployable edge.
+The constraints below are recorded for methodological completeness — they are reasons the
+backtest, even where positive, cannot be read as a live-tradeable result, and they would
+have to be resolved before *any* future variant of this work could be considered for capital:
 - Apply the strategy to a point-in-time constituent list to remove survivorship bias
 - Validate performance in the most recent 12–18 months of live paper trading
 - Assess liquidity: the strategy targets S&P 500 large-caps, which are generally liquid,
@@ -749,11 +980,17 @@ bias. Before deploying capital, practitioners should:
 ### 8.4 Broader Implications for Quantitative Research
 
 The study demonstrates a methodology for bridging options microstructure theory
-with cross-sectional technical analysis research. The walk-forward / Monte Carlo
-framework provides a template for evaluating any event-conditioned technical rule in
-a statistically rigorous way. The composite scoring approach — combining Profit Factor,
-Sharpe, Win Rate, and Max Drawdown into a single bounded metric — provides a framework
-for comparing strategies that may trade off different aspects of risk-adjusted performance.
+with cross-sectional technical analysis research. The walk-forward framework provides a
+useful template for evaluating event-conditioned technical rules under temporal discipline.
+The Monte Carlo component, however, should not be reused in its present return-shuffle form
+as a selection-edge test; §7.5 shows that it is degenerate when drawdown saturation makes the
+composite score order-insensitive. We replaced it with portfolio-level random-entry resampling
+(§7.5: rule at the 62nd percentile, p = 0.378) so that Profit Factor, Sharpe, Win Rate, and Max
+Drawdown all vary under the null — the form future templates (and the Edge or Beta? tool) should
+use. The composite scoring approach — combining Profit Factor, Sharpe, Win Rate,
+and Max Drawdown into a single bounded metric — remains useful for comparing strategies that
+may trade off different aspects of risk-adjusted performance, provided the null test varies
+the underlying entries rather than merely reordering realized returns.
 
 ---
 
@@ -764,11 +1001,16 @@ Baltussen, G., van Dijk, M., & Zhu, L. (2025). The third Friday price spike. *Wo
 Brock, W., Lakonishok, J., & LeBaron, B. (1992). Simple technical trading rules and the
 stochastic properties of stock returns. *Journal of Finance, 47*(5), 1731–1764.
 
+Fama, E. F. (1991). Efficient capital markets: II. *Journal of Finance, 46*(5), 1575–1617.
+
 Golez, B., & Jackwerth, J. C. (2012). Pinning in the S&P 500 futures. *Journal of
 Financial Economics, 106*(3), 566–585.
 
 Kim, M. J., Nelson, C. R., & Startz, R. (1991). Mean reversion in stock prices? A reappraisal
 of the empirical evidence. *Review of Economic Studies, 58*(3), 515–528.
+
+McLean, R. D., & Pontiff, J. (2016). Does academic research destroy stock return
+predictability? *Journal of Finance, 71*(1), 5–32.
 
 Ni, S. X., Pearson, N. D., & Poteshman, A. M. (2005). Stock price clustering on option
 expiration dates. *Journal of Financial Economics, 78*(1), 49–87.
@@ -800,6 +1042,8 @@ modules/
 notebooks/
   spy_expiry_analysis_v2.ipynb     # Main analysis: simulation + validation + charts
   ml_validation.ipynb              # ML feature matrix + H₃ + benchmark table
+                                   #   §3b: large-sample H₂ re-test, continuous-VIX,
+                                   #   small-vs-large-sample comparison chart
 doc/capstone/
   final_report.md                  # Written capstone report
   spy_expiry_capstone_presentation.pptx

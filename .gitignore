@@ -11,3 +11,18 @@ modules/data/*.backup
 
 # Date-based session docs — kept in working copy only
 doc/2026*/
+
+# Personal trading research — local-only, never published to GitHub
+personal_research/
+
+# Onclickmedia options/samples caches
+cache/onclickmedia_options/
+cache/onclickmedia_samples/
+
+# Generated outputs
+outputs/*.csv
+outputs/*.npz
+outputs/*.npy
+outputs/*.json
+outputs/manual-poster-review/
+outputs/reference_poster_review/
